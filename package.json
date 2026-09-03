@@ -11,8 +11,8 @@
     "validate": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
-    "@convokitapp/react-ui": "^0.1.0",
-    "@convokitapp/sdk": "^0.1.1",
+    "@convokitapp/react-ui": "^0.1.1",
+    "@convokitapp/sdk": "^0.1.2",
     "lucide-react": "^0.542.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
