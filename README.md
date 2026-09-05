@@ -48,10 +48,12 @@ The complete configuration is in [`src/ShowcaseApp.tsx`](src/ShowcaseApp.tsx).
 Open `?mode=live` after providing these public frontend settings:
 
 ```bash
-VITE_CONVOKIT_BACKEND_URL=https://api.example.com
 VITE_CONVOKIT_CLIENT_ID=public-client-id
 VITE_CONVOKIT_TOKEN_ENDPOINT=https://app.example.com/api/convokit-token
 ```
+
+The managed `https://api.convokit.app` endpoint is automatic. Optionally set
+`VITE_CONVOKIT_BACKEND_URL` only for local testing or self-hosting.
 
 The token endpoint runs on your backend and must authenticate the host user.
 Never expose the ConvoKit client secret in a React application or Vite variable.

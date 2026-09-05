@@ -13,9 +13,9 @@ export function LiveExample() {
   const [uiClient, setUiClient] = useState<ConvoKitUiClient | null>(null)
   const [error, setError] = useState<string | null>(null)
   const sdk = useMemo(() => {
-    if (!backendUrl || !clientId || !tokenEndpoint) return null
+    if (!clientId || !tokenEndpoint) return null
     return new ConvoKitClient({
-      backendUrl,
+      ...(backendUrl ? { backendUrl } : {}),
       clientId,
       tokenProvider: async (appUserId) => {
         const response = await fetch(tokenEndpoint, {
@@ -44,7 +44,7 @@ export function LiveExample() {
   }
 
   if (!sdk) {
-    return <main className="live-setup"><h1>Live ConvoKit example</h1><p>Set <code>VITE_CONVOKIT_BACKEND_URL</code>, <code>VITE_CONVOKIT_CLIENT_ID</code>, and <code>VITE_CONVOKIT_TOKEN_ENDPOINT</code> to enable this page.</p></main>
+    return <main className="live-setup"><h1>Live ConvoKit example</h1><p>Set <code>VITE_CONVOKIT_CLIENT_ID</code> and <code>VITE_CONVOKIT_TOKEN_ENDPOINT</code> to enable this page.</p></main>
   }
 
   if (!uiClient) {
