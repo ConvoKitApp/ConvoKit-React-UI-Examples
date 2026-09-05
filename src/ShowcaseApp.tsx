@@ -22,19 +22,19 @@ const details = {
   standard: {
     number: '1',
     title: 'Standard components',
-    description: 'Default list rows, header, bubbles, receipts, images, files and composer.',
+    description: 'Neutral, shadcn-inspired defaults for lists, messages, receipts, media and the composer.',
     props: ['onRefresh', 'onAddAttachment', 'readAtByUserId', 'reverseMessages: true'],
   },
   branded: {
     number: '2',
     title: 'Branded customer support',
-    description: 'A purple support workspace with custom rows, header, ticket, receipt and composer.',
+    description: 'A product-branded support workspace built from the same headless render hooks.',
     props: ['renderConversationItem', 'renderHeader', 'renderMedia', 'renderReadReceipt', 'renderComposer'],
   },
   compact: {
     number: '3',
     title: 'Compact operations view',
-    description: 'Dense list and message rendering for dashboards with limited space.',
+    description: 'A restrained data-dense treatment for web dashboards with limited space.',
     props: ['density: compact', 'renderConversationItem', 'renderMessage', 'renderTypingIndicator', 'stickToBottom: false'],
   },
 } satisfies Record<Variant, { number: string; title: string; description: string; props: string[] }>
@@ -49,10 +49,10 @@ export function ShowcaseApp() {
   const detail = details[variant]
   const theme = variant === 'branded'
     ? {
-        primary: '#6548ad',
-        background: '#f8f6ff',
-        border: '#e2dcf2',
-        outgoingBubble: '#6548ad',
+        primary: '#6d45a8',
+        background: '#fbfaff',
+        border: '#e5dff0',
+        outgoingBubble: '#6d45a8',
       }
     : {}
 
@@ -69,7 +69,7 @@ export function ShowcaseApp() {
         <header className="showcase__header">
           <div className="brand">
             <span className="brand__mark"><Bot aria-hidden="true" /></span>
-            <span><strong>ConvoKit React UI</strong><small>Same SDK components, different props and render functions</small></span>
+            <span><strong>ConvoKit React UI</strong><small>Web-native components, configured with props and render functions</small></span>
           </div>
           <nav className="variant-tabs" aria-label="Component configuration">
             {variants.map((item) => (

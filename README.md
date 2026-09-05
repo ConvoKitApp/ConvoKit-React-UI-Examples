@@ -24,14 +24,14 @@ Use the selector to compare configurations, or open `?variant=standard`,
 
 ![Standard ConvoKit React conversation list and chat components](doc/screenshots/standard-components.png)
 
-Package defaults plus refresh, attachment, read-position, image/file rendering,
-and bottom-anchored messages.
+Web-native, shadcn-inspired package defaults plus refresh, attachment,
+read-position, image/file rendering, and bottom-anchored messages.
 
 ### Branded customer support
 
 ![Branded ConvoKit React customer support interface](doc/screenshots/branded-support.png)
 
-A purple support workspace built with `renderConversationItem`, `renderHeader`,
+A restrained product-branded support workspace built with `renderConversationItem`, `renderHeader`,
 `renderMedia`, `renderReadReceipt`, and `renderComposer`.
 
 ### Compact operations
