@@ -3,6 +3,7 @@ import {
   ConversationListView,
   ConversationView,
   ConvoKitThemeProvider,
+  isConvoKitPendingMessage,
   type ComposerRenderProps,
   type MessageRenderProps,
 } from '@convokitapp/react-ui'
@@ -126,7 +127,7 @@ function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?:
       onSendMessage={() => true}
       onRefresh={() => undefined}
       onAddAttachment={() => undefined}
-      formatTime={(date) => date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}
+      formatTime={(date) => date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
       density={variant === 'compact' ? 'compact' : 'comfortable'}
       reverseMessages={variant !== 'compact'}
       stickToBottom={variant !== 'compact'}
@@ -182,7 +183,10 @@ function CompactHeader({ conversation }: { conversation: (typeof conversations)[
 }
 
 function CompactMessage({ message, sender, isCurrentUser }: MessageRenderProps) {
-  return <div className="compact-message"><strong>{isCurrentUser ? 'You' : sender?.name.split(' ')[0]}</strong><span>{message.text}</span><time>{message.createdAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}</time></div>
+  const status = isConvoKitPendingMessage(message)
+    ? 'Sending…'
+    : message.createdAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return <div className="compact-message"><strong>{isCurrentUser ? 'You' : sender?.name.split(' ')[0]}</strong><span>{message.text}</span><time>{status}</time></div>
 }
 
 function CompactComposer({ value, setValue, send }: ComposerRenderProps) {
