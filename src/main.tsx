@@ -5,7 +5,8 @@ import './styles.css'
 import { LiveExample } from './LiveExample'
 import { ShowcaseApp } from './ShowcaseApp'
 
-const isLive = new URLSearchParams(window.location.search).get('mode') === 'live'
+const params = new URLSearchParams(window.location.search)
+const isLive = params.get('mode') !== 'showcase' && (!params.has('variant') || params.get('mode') === 'live')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>{isLive ? <LiveExample /> : <ShowcaseApp />}</StrictMode>,
