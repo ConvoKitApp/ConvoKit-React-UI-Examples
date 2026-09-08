@@ -245,7 +245,7 @@ export function LiveExample() {
                 <div className="demo-sidebar-footer">
                   <span className="status-dot" />
                   {state.status}
-                  <span>UI SDK 0.3.0</span>
+                  <span>UI SDK 0.4.0</span>
                 </div>
               </aside>
               <section className="demo-chat-panel" aria-label="Chat workspace">

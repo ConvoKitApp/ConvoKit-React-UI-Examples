@@ -9,6 +9,11 @@ React UI package and the core [`@convokitapp/sdk`](https://www.npmjs.com/package
 
 ## Live open-chatroom demo
 
+This example consumes the published 0.4.0 core and UI packages. The UI library
+automatically refreshes inboxes on room/membership changes and replaces pending
+messages when their matching live/history confirmation arrives. No demo-side
+polling, text matching or duplicate-bubble workaround is required.
+
 [Open the React demo](https://convokit-react-demo.vercel.app). It uses the same backend, demo personas and
 room IDs as the [Flutter demo](https://convokit-open-chatroom.vercel.app).
 The default page is now the real SDK-backed app; no environment variables are
