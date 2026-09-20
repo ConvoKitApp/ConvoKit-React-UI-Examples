@@ -8,6 +8,7 @@ const participants = [
     imageUrl: null,
     role: 'READ_WRITE',
     lastReadAt: new Date('2026-08-26T11:30:00Z'),
+    readPosition: null,
   },
   {
     id: 'participant-alex',
@@ -16,6 +17,7 @@ const participants = [
     imageUrl: null,
     role: 'READ_WRITE',
     lastReadAt: new Date('2026-08-26T11:30:00Z'),
+    readPosition: null,
   },
   {
     id: 'participant-jordan',
@@ -24,6 +26,7 @@ const participants = [
     imageUrl: null,
     role: 'READ_WRITE',
     lastReadAt: new Date('2026-08-26T11:28:00Z'),
+    readPosition: null,
   },
 ] satisfies Conversation['participants']
 

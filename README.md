@@ -9,7 +9,7 @@ React UI package and the core [`@convokitapp/sdk`](https://www.npmjs.com/package
 
 ## Live open-chatroom demo
 
-This example consumes the published 0.4.0 core and 0.4.1 UI packages. The UI library
+This example consumes the published 0.5.0 core and UI packages. The UI library
 automatically refreshes inboxes on room/membership changes and replaces pending
 messages when their matching live/history confirmation arrives. No demo-side
 polling, text matching or duplicate-bubble workaround is required.
