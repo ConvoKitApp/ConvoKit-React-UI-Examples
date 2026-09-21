@@ -1,4 +1,4 @@
-import type { Conversation, Message } from '@convokitapp/sdk'
+import type { Conversation, InboxSummary, Message } from '@convokitapp/sdk'
 
 const participants = [
   {
@@ -112,4 +112,76 @@ export const messages: Message[] = [
 export const readAtByUserId = new Map([
   ['alex', new Date('2026-08-26T11:30:00Z')],
   ['jordan', new Date('2026-08-26T11:28:00Z')],
+])
+
+/** What `listInbox` would return for Maya: the newest message, her unread count and activity time per room. */
+export const summaries = new Map<string, InboxSummary>([
+  [
+    'product-launch',
+    {
+      latestMessage: messages[3]!,
+      unreadCount: 0,
+      unreadCountCapped: false,
+      readPosition: { messageId: 'message-3', createdAt: new Date('2026-08-26T11:23:00Z') },
+      lastReadAt: new Date('2026-08-26T11:30:00Z'),
+      activityAt: new Date('2026-08-26T11:27:00Z'),
+    },
+  ],
+  [
+    'customer-operations',
+    {
+      latestMessage: {
+        id: 'message-5',
+        conversationId: 'customer-operations',
+        senderId: 'alex',
+        text: 'Payment verification is still pending on ticket CK-4821.',
+        media: [],
+        createdAt: new Date('2026-08-26T11:26:00Z'),
+        updatedAt: null,
+      },
+      unreadCount: 2,
+      unreadCountCapped: false,
+      readPosition: null,
+      lastReadAt: new Date('2026-08-26T10:58:00Z'),
+      activityAt: new Date('2026-08-26T11:26:00Z'),
+    },
+  ],
+  [
+    'design-review',
+    {
+      latestMessage: {
+        id: 'message-6',
+        conversationId: 'design-review',
+        senderId: 'jordan',
+        text: null,
+        media: [{ id: 'image-2', type: 'image', name: 'settings-panel.png', url: '/launch-board.svg', size: 90112 }],
+        createdAt: new Date('2026-08-26T11:25:00Z'),
+        updatedAt: null,
+      },
+      unreadCount: 0,
+      unreadCountCapped: false,
+      readPosition: { messageId: 'message-6', createdAt: new Date('2026-08-26T11:25:00Z') },
+      lastReadAt: new Date('2026-08-26T11:25:30Z'),
+      activityAt: new Date('2026-08-26T11:25:00Z'),
+    },
+  ],
+  [
+    'incident-room',
+    {
+      latestMessage: {
+        id: 'message-7',
+        conversationId: 'incident-room',
+        senderId: 'alex',
+        text: null,
+        media: [{ id: 'file-2', type: 'file', name: 'postmortem-draft.pdf', url: 'https://example.com/postmortem-draft.pdf', size: 512000 }],
+        createdAt: new Date('2026-08-26T11:24:00Z'),
+        updatedAt: null,
+      },
+      unreadCount: 104,
+      unreadCountCapped: false,
+      readPosition: null,
+      lastReadAt: null,
+      activityAt: new Date('2026-08-26T11:24:00Z'),
+    },
+  ],
 ])

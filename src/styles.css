@@ -69,8 +69,11 @@ button { color: inherit; }
 
 .compact-row { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 38px; padding: 5px 8px; border: 0; border-bottom: 1px solid #e4e4e7; background: #fff; text-align: left; cursor: pointer; }
 .compact-row:hover { background: #fafafa; }
-.compact-row > span { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid #e4e4e7; border-radius: 6px; background: #f4f4f5; color: #52525b; font-size: 9px; }
+.compact-row > span:first-child { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid #e4e4e7; border-radius: 6px; background: #f4f4f5; color: #52525b; font-size: 9px; }
+.compact-row > span:nth-child(2) { display: grid; min-width: 0; }
+.compact-row strong, .compact-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .compact-row strong { font-size: 11px; font-weight: 600; }
+.compact-row small { color: #71717a; font-size: 9px; }
 .compact-row > svg { color: #16a34a; }
 .compact-header { display: flex; align-items: center; gap: 9px; min-height: 48px; padding: 7px 11px; border-bottom: 1px solid #e4e4e7; background: #fff; }
 .compact-header strong { flex: 1; font-size: 12px; }

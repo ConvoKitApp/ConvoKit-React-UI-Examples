@@ -230,7 +230,6 @@ export function LiveExample() {
                   />
                 </label>
                 <ConversationList
-                  key={state.listRevision}
                   client={ui}
                   pageSize={20}
                   selectedConversationId={state.roomId}
@@ -245,7 +244,7 @@ export function LiveExample() {
                 <div className="demo-sidebar-footer">
                   <span className="status-dot" />
                   {state.status}
-                  <span>UI SDK 0.5.0</span>
+                  <span>UI SDK 0.6.0</span>
                 </div>
               </aside>
               <section className="demo-chat-panel" aria-label="Chat workspace">
@@ -358,6 +357,8 @@ export function LiveExample() {
                     if (ok) {
                       setCopied(false)
                       setModal(null)
+                      // The inbox also refetches on the membership signal; this keeps the loaded pages.
+                      void list.current?.refresh()
                     }
                   })
                 }}

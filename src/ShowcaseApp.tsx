@@ -3,13 +3,15 @@ import {
   ConversationListView,
   ConversationView,
   ConvoKitThemeProvider,
+  inboxPreviewText,
   isConvoKitPendingMessage,
   type ComposerRenderProps,
+  type ConversationItemRenderProps,
   type MessageRenderProps,
 } from '@convokitapp/react-ui'
 import { ArrowLeft, Bot, CheckCheck, Circle, Headphones, Paperclip, Send, Ticket, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { conversations, messages, readAtByUserId } from './fixtures'
+import { conversations, messages, readAtByUserId, summaries } from './fixtures'
 
 export type Variant = 'standard' | 'branded' | 'compact'
 
@@ -23,8 +25,8 @@ const details = {
   standard: {
     number: '1',
     title: 'Standard components',
-    description: 'Neutral, shadcn-inspired defaults for lists, messages, receipts, media and the composer.',
-    props: ['onRefresh', 'onAddAttachment', 'readAtByUserId', 'reverseMessages: true'],
+    description: 'Neutral, shadcn-inspired defaults for lists, previews, unread badges, messages, receipts, media and the composer.',
+    props: ['summaries', 'currentUserId', 'onRefresh', 'onAddAttachment', 'readAtByUserId', 'reverseMessages: true'],
   },
   branded: {
     number: '2',
@@ -108,6 +110,8 @@ function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?:
     return (
       <ConversationListView
         conversations={conversations}
+        summaries={summaries}
+        currentUserId="maya"
         selectedConversationId={selected.id}
         onConversationSelect={() => undefined}
         density={variant === 'compact' ? 'compact' : 'comfortable'}
@@ -147,20 +151,37 @@ function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?:
   )
 }
 
-function BrandedConversationRow({ conversation, index, selected, onSelect }: Parameters<NonNullable<React.ComponentProps<typeof ConversationListView>['renderConversationItem']>>[0]) {
+/**
+ * Unread badge from a real `InboxSummary`; null when nothing is unread. Mirrors the package's default badge:
+ * the visible label overflows to 99+, while the accessible name keeps the exact count unless the server capped it.
+ */
+function unreadBadge(summary: ConversationItemRenderProps['summary']) {
+  if (!summary || (summary.unreadCount <= 0 && !summary.unreadCountCapped)) return null
+  const overflow = summary.unreadCount > 99 || summary.unreadCountCapped
+  return {
+    label: overflow ? '99+' : String(summary.unreadCount),
+    name: summary.unreadCountCapped ? '99+ unread' : `${summary.unreadCount} unread`,
+  }
+}
+
+function BrandedConversationRow({ conversation, selected, onSelect, summary, currentUserId }: ConversationItemRenderProps) {
+  const unread = unreadBadge(summary)
   return (
     <button type="button" className="branded-row" data-selected={selected || undefined} onClick={onSelect}>
       <span className="branded-row__avatar">{conversation.displayTitle[0]}</span>
-      <span><strong>{conversation.displayTitle}</strong><small>{index === 0 ? 'Waiting for your reply' : 'Last reply today'}</small></span>
-      {index === 0 ? <b>2</b> : null}
+      <span><strong>{conversation.displayTitle}</strong><small>{(summary && inboxPreviewText(summary, conversation, currentUserId)) || conversation.description}</small></span>
+      {unread ? <b aria-label={unread.name}>{unread.label}</b> : null}
     </button>
   )
 }
 
-function CompactConversationRow({ conversation, selected, onSelect }: Parameters<NonNullable<React.ComponentProps<typeof ConversationListView>['renderConversationItem']>>[0]) {
+function CompactConversationRow({ conversation, onSelect, summary, currentUserId }: ConversationItemRenderProps) {
+  const unread = unreadBadge(summary)
   return (
     <button type="button" className="compact-row" onClick={onSelect}>
-      <span>{conversation.displayTitle[0]}</span><strong>{conversation.displayTitle}</strong>{selected ? <Circle fill="currentColor" size={7} /> : null}
+      <span>{conversation.displayTitle[0]}</span>
+      <span><strong>{conversation.displayTitle}</strong><small>{(summary && inboxPreviewText(summary, conversation, currentUserId)) || conversation.description}</small></span>
+      {unread ? <Circle fill="currentColor" size={7} role="img" aria-label={unread.name} /> : null}
     </button>
   )
 }

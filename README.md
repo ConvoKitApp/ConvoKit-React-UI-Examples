@@ -9,10 +9,12 @@ React UI package and the core [`@convokitapp/sdk`](https://www.npmjs.com/package
 
 ## Live open-chatroom demo
 
-This example consumes the published 0.5.0 core and UI packages. The UI library
-automatically refreshes inboxes on room/membership changes and replaces pending
-messages when their matching live/history confirmation arrives. No demo-side
-polling, text matching or duplicate-bubble workaround is required.
+This example consumes the published 0.6.0 core and UI packages. The SDK-backed
+conversation list pages the activity-ordered inbox, shows each room's latest-message
+preview, activity time and unread badge, and refreshes on room/membership/activity
+signals; pending messages are replaced when their matching live/history confirmation
+arrives. No demo-side polling, preview/unread bookkeeping, text matching or
+duplicate-bubble workaround is required.
 
 [Open the React demo](https://convokit-react-demo.vercel.app). It uses the same backend, demo personas and
 room IDs as the [Flutter demo](https://convokit-open-chatroom.vercel.app).
@@ -48,15 +50,17 @@ Use the selector to compare configurations, or open `?variant=standard`,
 
 ![Standard ConvoKit React conversation list and chat components](doc/screenshots/standard-components.png)
 
-Web-native, shadcn-inspired package defaults plus refresh, attachment,
-read-position, image/file rendering, and bottom-anchored messages.
+Web-native, shadcn-inspired package defaults plus inbox previews and unread badges
+from `summaries`/`currentUserId`, refresh, attachment, read-position, image/file
+rendering, and bottom-anchored messages.
 
 ### Branded customer support
 
 ![Branded ConvoKit React customer support interface](doc/screenshots/branded-support.png)
 
-A restrained product-branded support workspace built with `renderConversationItem`, `renderHeader`,
-`renderMedia`, `renderReadReceipt`, and `renderComposer`.
+A restrained product-branded support workspace built with `renderConversationItem` (reading the
+row's `summary` and `currentUserId`), `renderHeader`, `renderMedia`, `renderReadReceipt`, and
+`renderComposer`.
 
 ### Compact operations
 

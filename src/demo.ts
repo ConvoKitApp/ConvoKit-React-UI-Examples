@@ -85,7 +85,6 @@ export type DemoState = {
   status: string
   activity: string[]
   online: string[]
-  listRevision: number
 }
 type ClientFactory = () => ConvoKitClient
 
@@ -105,7 +104,6 @@ export class DemoModel {
     status: 'Not connected',
     activity: [],
     online: [],
-    listRevision: 0,
   }
   constructor(
     private readonly makeClient: ClientFactory = () =>
@@ -223,7 +221,6 @@ export class DemoModel {
         roomId: restoredRoom,
         status: 'Joining channels…',
         busy: false,
-        listRevision: this.state.listRevision + 1,
       })
       saveSession({ userId, roomId: restoredRoom })
       this.log('Connected as ' + displayName(userId))
@@ -262,7 +259,6 @@ export class DemoModel {
       } else room = await sdk.createConversation({ title: value.trim(), participants: [this.state.userId] })
       if (epoch !== this.epoch) return false
       this.selectRoom(room.id)
-      this.patch({ listRevision: this.state.listRevision + 1 })
       this.log(mode === 'join' ? 'Chatroom membership granted' : 'Created ' + room.displayTitle)
       return true
     } catch (error) {
