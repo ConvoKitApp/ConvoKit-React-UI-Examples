@@ -9,7 +9,7 @@ React UI package and the core [`@convokitapp/sdk`](https://www.npmjs.com/package
 
 ## Live open-chatroom demo
 
-This example consumes the published 0.7.0 core and UI packages. The SDK-backed
+This example consumes the published 0.8.0 core and UI packages. The SDK-backed
 conversation list pages the activity-ordered inbox, shows each room's latest-message
 preview, activity time and unread badge, and refreshes on room/membership/activity
 signals; pending messages are replaced when their matching live/history confirmation
@@ -19,8 +19,18 @@ sets the viewer's private marker, patches that row's summary and renders a numbe
 dot when nothing is actually unread, and the demo returns to the inbox. Reopening the
 room acknowledges it with the private state version captured at that open, which
 clears the marker; other members never see it, and a second device picks it up
-through the inbox activity signal. No demo-side polling, preview/unread bookkeeping,
-text matching or duplicate-bubble workaround is required.
+through the inbox activity signal. Your own confirmed messages offer the package's
+**Edit message** / **Delete message** actions (revealed on hover or focus with a mouse,
+always visible on touch): editing turns the composer into an edit banner that saves
+through the SDK's author route with the revision you saw, so a message someone else
+edited first answers a conflict that reloads the row and keeps your text; deleting asks
+the inline `Delete this message?` confirmation and removes the row for every member
+once the server confirms. Rows whose content changed carry an `Edited` label derived
+from the message's `revision`. The demo passes nothing about editing: the bound
+`Conversation` wires its controller (`editingMessage`, `startEditing`, `saveEdit`,
+`cancelEditing`, `deleteMessage`) itself. No demo-side polling, preview/unread
+bookkeeping, text matching, revision bookkeeping or duplicate-bubble workaround is
+required.
 
 [Open the React demo](https://convokit-react-demo.vercel.app). It uses the same backend, demo personas and
 room IDs as the [Flutter demo](https://convokit-open-chatroom.vercel.app).
@@ -33,6 +43,11 @@ required to try the shared demo.
   typing, read receipts, images and files. Attachments are limited to 20 MB.
 - Open a room and choose **Mark unread** to flag it for later; the same persona on
   another device sees the dot without opening the room, and opening it clears it.
+- Hover or focus one of your own messages to **Edit** or **Delete** it; the other
+  device sees the new text with an `Edited` label, or the row disappearing, without a
+  reload. Edit the same message from both devices to see the conflict handling: the
+  second save reloads the row, keeps your draft, and saves on the next attempt.
+  Deleting cannot be undone, and files already received or downloaded cannot be retracted.
 - Reload restores the user and selected room. Switch user ends that SDK session.
 - The inbox and chat are the published UI package's components/controllers.
   App code only supplies branding, the demo identity/room flow and upload/download hooks.
@@ -60,8 +75,13 @@ Use the selector to compare configurations, or open `?variant=standard`,
 
 Web-native, shadcn-inspired package defaults plus inbox previews and unread badges
 from `summaries`/`currentUserId` (a numberless dot for a room marked unread with a
-count of 0), refresh, attachment, read-position, image/file rendering, and
-bottom-anchored messages.
+count of 0), refresh, attachment, read-position, image/file rendering, own-message
+**Edit message** / **Delete message** actions with the inline delete confirmation, the
+composer's edit banner and the `Edited` label, and bottom-anchored messages. The
+controlled `ConversationView` gets `editingMessage`, `onEditMessage`, `onSaveEdit`,
+`onCancelEdit` and `onDeleteMessage` from a small fixture room (a save bumps the
+row's `revision`, a delete removes it and the inbox preview follows the newest
+surviving row); leave those props out and no action renders.
 
 ### Branded customer support
 
@@ -69,14 +89,19 @@ bottom-anchored messages.
 
 A restrained product-branded support workspace built with `renderConversationItem` (reading the
 row's `summary` and `currentUserId`, including the `isUnread` dot rule), `renderHeader`,
-`renderMedia`, `renderReadReceipt`, and `renderComposer`.
+`renderMedia`, `renderReadReceipt`, and `renderComposer`. The custom composer renders its own
+banner from the `editing` render prop and calls the same `send` to save; the package's default
+rows keep their edit/delete actions.
 
 ### Compact operations
 
 ![Compact ConvoKit React operations interface](doc/screenshots/compact-operations.png)
 
 A dense dashboard built with `density="compact"`, custom rows, message lines,
-typing state, composer, and `stickToBottom={false}`.
+typing state, composer, and `stickToBottom={false}`. The custom message line renders the
+`isEdited` flag and the `edit` / `remove` actions it receives (present exactly when the
+viewer may act on that row); `remove` goes through the view's `confirmDelete`, so the
+host's own dialog replaces the inline confirmation.
 
 The complete configuration is in [`src/ShowcaseApp.tsx`](src/ShowcaseApp.tsx).
 

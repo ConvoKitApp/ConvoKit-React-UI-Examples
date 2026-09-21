@@ -67,6 +67,11 @@ button { color: inherit; }
 .branded-composer button { display: grid; min-height: 36px; place-items: center; border: 0; border-radius: 7px; background: transparent; cursor: pointer; }
 .branded-composer button:first-child { width: 36px; color: #6f6878; }
 .branded-composer button:last-child { padding: 7px 15px; background: #6d45a8; color: #fff; font-size: 12px; font-weight: 600; }
+.branded-editing { display: flex; align-items: center; gap: 8px; padding: 7px 12px 0; border-top: 1px solid #e5dff0; background: #fff; color: #7a7184; font-size: 11px; }
+.branded-editing + .branded-composer { border-top: 0; }
+.branded-editing strong { color: #6d45a8; font-weight: 600; }
+.branded-editing span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.branded-editing button { padding: 2px 6px; border: 0; border-radius: 5px; background: transparent; color: #6548ad; font-size: 11px; font-weight: 600; cursor: pointer; }
 
 .compact-row { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 38px; padding: 5px 8px; border: 0; border-bottom: 1px solid #e4e4e7; background: #fff; text-align: left; cursor: pointer; }
 .compact-row:hover { background: #fafafa; }
@@ -79,9 +84,20 @@ button { color: inherit; }
 .compact-header { display: flex; align-items: center; gap: 9px; min-height: 48px; padding: 7px 11px; border-bottom: 1px solid #e4e4e7; background: #fff; }
 .compact-header strong { flex: 1; font-size: 12px; }
 .compact-header > span { padding: 3px 7px; border: 1px solid #bbf7d0; border-radius: 6px; background: #f0fdf4; color: #15803d; font-size: 9px; font-weight: 600; }
-.compact-message { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; gap: 8px; align-items: baseline; padding: 4px 8px; border-bottom: 1px solid #f1f1f2; font-size: 10px; }
+.compact-message { display: grid; grid-template-columns: 48px minmax(0,1fr) auto auto; gap: 8px; align-items: baseline; padding: 4px 8px; border-bottom: 1px solid #f1f1f2; font-size: 10px; }
 .compact-message strong { color: #52525b; font-size: 9px; font-weight: 600; }
 .compact-message time { color: #a1a1aa; font-size: 8px; }
+.compact-message__meta { display: inline-flex; gap: 4px; align-items: baseline; }
+.compact-message__meta em { color: #a1a1aa; font-size: 8px; }
+.compact-message__actions { display: inline-flex; gap: 2px; }
+.compact-message__actions button { display: grid; width: 18px; height: 18px; place-items: center; border: 0; border-radius: 4px; background: transparent; color: #71717a; cursor: pointer; }
+.compact-message__actions button:hover { background: #f4f4f5; color: #18181b; }
+.compact-message__actions svg { width: 11px; }
+.compact-editing { display: flex; align-items: center; gap: 6px; padding: 5px 8px 0; border-top: 1px solid #e4e4e7; background: #fff; color: #71717a; font-size: 9px; }
+.compact-editing + .compact-composer { border-top: 0; }
+.compact-editing strong { font-weight: 600; }
+.compact-editing span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compact-editing button { padding: 1px 5px; border: 0; border-radius: 4px; background: transparent; color: #18181b; font-size: 9px; font-weight: 600; cursor: pointer; }
 .compact-typing { min-height: 23px; padding: 4px 10px; border-top: 1px solid #e4e4e7; background: #fafafa; color: #71717a; font-size: 9px; }
 .compact-composer { display: flex; align-items: center; gap: 7px; min-height: 48px; padding: 6px 8px; border-top: 1px solid #e4e4e7; background: #fff; }
 .compact-composer input { flex: 1; height: 34px; padding-inline: 9px; border: 1px solid #e4e4e7; border-radius: 7px; outline: none; }

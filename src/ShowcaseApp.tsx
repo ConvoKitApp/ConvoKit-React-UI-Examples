@@ -1,4 +1,4 @@
-import type { MessageMedia } from '@convokitapp/sdk'
+import type { Message, MessageMedia } from '@convokitapp/sdk'
 import {
   ConversationListView,
   ConversationView,
@@ -9,7 +9,7 @@ import {
   type ConversationItemRenderProps,
   type MessageRenderProps,
 } from '@convokitapp/react-ui'
-import { ArrowLeft, Bot, CheckCheck, Circle, Headphones, Paperclip, Send, Ticket, Users } from 'lucide-react'
+import { ArrowLeft, Bot, Check, CheckCheck, Circle, Headphones, Paperclip, Pencil, Send, Ticket, Trash2, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { conversations, messages, readAtByUserId, summaries } from './fixtures'
 
@@ -25,20 +25,20 @@ const details = {
   standard: {
     number: '1',
     title: 'Standard components',
-    description: 'Neutral, shadcn-inspired defaults for lists, previews, unread badges, messages, receipts, media and the composer.',
-    props: ['summaries', 'currentUserId', 'onRefresh', 'onAddAttachment', 'readAtByUserId', 'reverseMessages: true'],
+    description: 'Neutral, shadcn-inspired defaults for lists, previews, unread badges, messages, own-message edit and delete actions, receipts, media and the composer.',
+    props: ['summaries', 'currentUserId', 'onRefresh', 'onAddAttachment', 'readAtByUserId', 'editingMessage', 'onEditMessage', 'onSaveEdit', 'onDeleteMessage', 'reverseMessages: true'],
   },
   branded: {
     number: '2',
     title: 'Branded customer support',
     description: 'A product-branded support workspace built from the same headless render hooks.',
-    props: ['renderConversationItem', 'renderHeader', 'renderMedia', 'renderReadReceipt', 'renderComposer'],
+    props: ['renderConversationItem', 'renderHeader', 'renderMedia', 'renderReadReceipt', 'renderComposer', 'editing'],
   },
   compact: {
     number: '3',
     title: 'Compact operations view',
     description: 'A restrained data-dense treatment for web dashboards with limited space.',
-    props: ['density: compact', 'renderConversationItem', 'renderMessage', 'renderTypingIndicator', 'stickToBottom: false'],
+    props: ['density: compact', 'renderConversationItem', 'renderMessage', 'renderTypingIndicator', 'confirmDelete', 'stickToBottom: false'],
   },
 } satisfies Record<Variant, { number: string; title: string; description: string; props: string[] }>
 
@@ -47,8 +47,47 @@ function variantFromUrl(): Variant {
   return variants.some((variant) => variant.id === value) ? (value as Variant) : 'standard'
 }
 
+/**
+ * The offline stand-in for the shared room on a 0.8 backend: the fixture history and the edit-mode snapshot
+ * the controlled `ConversationView` is a pure function of. Saving replaces the text and bumps that row's
+ * `revision` (an emptied caption is stored as null; the `Edited` label follows the revision, never
+ * `updatedAt`); deleting removes the row for every member, and the inbox preview follows the newest
+ * surviving row as `listInbox` would. Nothing here re-implements the package's conflict handling: with the
+ * SDK-backed `Conversation` the controller owns `editingMessage`, sends the snapshot's revision and reloads
+ * the row on a 409 itself.
+ */
+function useShowcaseRoom() {
+  const [history, setHistory] = useState(messages)
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null)
+  const inbox = useMemo(() => {
+    const launch = summaries.get('product-launch')!
+    return new Map(summaries).set('product-launch', { ...launch, latestMessage: history.at(-1) ?? null })
+  }, [history])
+  return {
+    history,
+    inbox,
+    editingMessage,
+    edit: setEditingMessage,
+    cancel: () => setEditingMessage(null),
+    save: (message: Message, text: string) => {
+      setHistory((rows) => rows.map((row) => (
+        row.id === message.id ? { ...row, text: text || null, updatedAt: new Date(), revision: row.revision + 1 } : row
+      )))
+      setEditingMessage(null)
+      return true
+    },
+    remove: (message: Message) => {
+      setHistory((rows) => rows.filter((row) => row.id !== message.id))
+      setEditingMessage((current) => (current?.id === message.id ? null : current))
+    },
+  }
+}
+
+type ShowcaseRoom = ReturnType<typeof useShowcaseRoom>
+
 export function ShowcaseApp() {
   const [variant, setVariant] = useState<Variant>(variantFromUrl)
+  const room = useShowcaseRoom()
   const detail = details[variant]
   const theme = variant === 'branded'
     ? {
@@ -91,11 +130,11 @@ export function ShowcaseApp() {
         <section className="component-grid">
           <article className="component-card component-card--list">
             <div className="component-label">Conversation list</div>
-            <ConversationPanel variant={variant} />
+            <ConversationPanel variant={variant} room={room} />
           </article>
           <article className="component-card component-card--chat">
             <div className="component-label">Chat view</div>
-            <ConversationPanel variant={variant} chat />
+            <ConversationPanel variant={variant} room={room} chat />
           </article>
         </section>
       </main>
@@ -103,14 +142,14 @@ export function ShowcaseApp() {
   )
 }
 
-function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?: boolean }) {
+function ConversationPanel({ variant, room, chat = false }: { variant: Variant; room: ShowcaseRoom; chat?: boolean }) {
   const selected = conversations[0]!
   const typing = useMemo(() => new Set(variant === 'standard' ? [] : ['alex']), [variant])
   if (!chat) {
     return (
       <ConversationListView
         conversations={conversations}
-        summaries={summaries}
+        summaries={room.inbox}
         currentUserId="maya"
         selectedConversationId={selected.id}
         onConversationSelect={() => undefined}
@@ -121,16 +160,25 @@ function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?:
     )
   }
 
+  // Edit mode is a pure function of `editingMessage` plus the callbacks (0.8): the package decides which rows
+  // are eligible (Maya's own confirmed rows), renders their actions and the composer's edit banner, and routes
+  // the single `send` path through `onSaveEdit` while editing. Standard and branded keep the package's inline
+  // `Delete this message?` confirmation; compact hands confirmation to the host through `confirmDelete`.
   return (
     <ConversationView
       conversation={selected}
-      messages={messages}
+      messages={room.history}
       currentUserId="maya"
       readAtByUserId={readAtByUserId}
       typingUserIds={typing}
       onSendMessage={() => true}
       onRefresh={() => undefined}
       onAddAttachment={() => undefined}
+      editingMessage={room.editingMessage}
+      onEditMessage={room.edit}
+      onSaveEdit={room.save}
+      onCancelEdit={room.cancel}
+      onDeleteMessage={room.remove}
       formatTime={(date) => date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
       density={variant === 'compact' ? 'compact' : 'comfortable'}
       reverseMessages={variant !== 'compact'}
@@ -146,6 +194,7 @@ function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?:
         renderMessage: CompactMessage,
         renderTypingIndicator: () => <div className="compact-typing">Jordan Lee is responding…</div>,
         renderComposer: CompactComposer,
+        confirmDelete: (message: Message) => window.confirm(`Delete "${message.text ?? 'this message'}"?`),
       } : {})}
     />
   )
@@ -201,21 +250,60 @@ function BrandedMedia({ media }: { media: MessageMedia }) {
   return <div className="ticket-card"><Ticket /><span><strong>{media.name}</strong><small>{media.metadata.email}</small></span><button type="button">Open</button></div>
 }
 
-function BrandedComposer({ value, setValue, send, addAttachment }: ComposerRenderProps) {
-  return <div className="branded-composer"><button type="button" onClick={addAttachment} aria-label="Attach"><Paperclip /></button><input value={value} onChange={(event) => setValue(event.target.value)} placeholder="Reply to customer…" /><button type="button" onClick={send}>Send</button></div>
+/**
+ * Custom composers receive `editing` while a message is being edited (0.8): the snapshot for a banner and a
+ * `cancel` that restores the stashed draft. The same `send` saves while editing and sends otherwise, so the
+ * button only changes its label; author edits change text only, so the attach button is hidden meanwhile.
+ */
+function BrandedComposer({ value, setValue, send, addAttachment, editing }: ComposerRenderProps) {
+  return (
+    <>
+      {editing ? <div className="branded-editing" role="status"><strong>Editing message</strong><span>{editing.message.text}</span><button type="button" onClick={editing.cancel} aria-label="Cancel editing">Cancel</button></div> : null}
+      <div className="branded-composer">
+        {editing ? null : <button type="button" onClick={addAttachment} aria-label="Attach"><Paperclip /></button>}
+        <input value={value} onChange={(event) => setValue(event.target.value)} placeholder={editing ? 'Edit your reply…' : 'Reply to customer…'} />
+        <button type="button" onClick={send}>{editing ? 'Save' : 'Send'}</button>
+      </div>
+    </>
+  )
 }
 
 function CompactHeader({ conversation }: { conversation: (typeof conversations)[number] }) {
   return <header className="compact-header"><ArrowLeft /><strong>{conversation.displayTitle}</strong><span>Live</span></header>
 }
 
-function CompactMessage({ message, sender, isCurrentUser }: MessageRenderProps) {
+/**
+ * Custom rows receive `isEdited` (`revision > 0`, never `updatedAt`) and, exactly when the viewer may act on
+ * the row, `edit` and `remove` (0.8). `remove` asks the view's `confirmDelete` first, so this row needs no
+ * confirmation UI of its own.
+ */
+function CompactMessage({ message, sender, isCurrentUser, isEdited, edit, remove }: MessageRenderProps) {
   const status = isConvoKitPendingMessage(message)
     ? 'Sending…'
     : message.createdAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-  return <div className="compact-message"><strong>{isCurrentUser ? 'You' : sender?.name.split(' ')[0]}</strong><span>{message.text}</span><time>{status}</time></div>
+  return (
+    <div className="compact-message">
+      <strong>{isCurrentUser ? 'You' : sender?.name.split(' ')[0]}</strong>
+      <span>{message.text}</span>
+      <span className="compact-message__meta"><time>{status}</time>{isEdited ? <em aria-label="Edited">Edited</em> : null}</span>
+      {edit || remove ? (
+        <span className="compact-message__actions">
+          {edit ? <button type="button" onClick={edit} aria-label="Edit message"><Pencil /></button> : null}
+          {remove ? <button type="button" onClick={() => void remove()} aria-label="Delete message"><Trash2 /></button> : null}
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
-function CompactComposer({ value, setValue, send }: ComposerRenderProps) {
-  return <div className="compact-composer"><input value={value} onChange={(event) => setValue(event.target.value)} placeholder="Message" /><button type="button" onClick={send} aria-label="Send"><Send /></button></div>
+function CompactComposer({ value, setValue, send, editing }: ComposerRenderProps) {
+  return (
+    <>
+      {editing ? <div className="compact-editing" role="status"><strong>Editing</strong><span>{editing.message.text}</span><button type="button" onClick={editing.cancel} aria-label="Cancel editing">Cancel</button></div> : null}
+      <div className="compact-composer">
+        <input value={value} onChange={(event) => setValue(event.target.value)} placeholder={editing ? 'Edit message' : 'Message'} />
+        <button type="button" onClick={send} aria-label={editing ? 'Save' : 'Send'}>{editing ? <Check /> : <Send />}</button>
+      </div>
+    </>
+  )
 }

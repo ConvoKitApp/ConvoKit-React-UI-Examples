@@ -1,12 +1,14 @@
-import { fireEvent, render, screen, cleanup, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, cleanup, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Conversation, ConvoKitClient, InboxEntry, MarkConversationReadOptions, Message } from '@convokitapp/sdk'
+import type { Conversation, ConvoKitClient, EditMessageInput, InboxEntry, MarkConversationReadOptions, Message } from '@convokitapp/sdk'
 import { LiveExample } from './LiveExample'
 import { DemoModel, sessionKey } from './demo'
 
 /**
- * A connected 0.7 SDK as the published UI package sees it: one room with nothing unread, its membership
- * served to the caller, and the `/unread` mark answering with the marker and the bumped version.
+ * A connected 0.8 SDK as the published UI package sees it: one room with nothing unread, its membership
+ * served to the caller, the `/unread` mark answering with the marker and the bumped version, and the author
+ * routes (`PATCH`/`DELETE /messages/:id/own`) answering an edit with the bumped revision and a delete with
+ * nothing. Maya's own older message was already edited once (`revision: 1`), Alex's newest one never was.
  */
 const fake = vi.hoisted(() => {
   const subscription = () => ({ closed: false, unsubscribe: async () => undefined })
@@ -16,7 +18,11 @@ const fake = vi.hoisted(() => {
   }
   const message: Message = {
     id: 'message-1', conversationId: 'room-1', senderId: 'convokit_open_alex', text: 'Hello Maya', media: [],
-    createdAt: new Date('2026-08-26T11:00:00Z'), updatedAt: null,
+    createdAt: new Date('2026-08-26T11:00:00Z'), updatedAt: null, revision: 0,
+  }
+  const own: Message = {
+    id: 'message-0', conversationId: 'room-1', senderId: 'convokit_open_maya', text: 'Morning Alex, launch is a go', media: [],
+    createdAt: new Date('2026-08-26T10:58:00Z'), updatedAt: new Date('2026-08-26T10:59:00Z'), revision: 1,
   }
   const entry: InboxEntry = {
     conversation: room, latestMessage: message, unreadCount: 0, unreadCountCapped: false,
@@ -36,7 +42,11 @@ const fake = vi.hoisted(() => {
       ...room,
       membership: { role: 'READ_WRITE', lastReadAt: message.createdAt, readPosition: entry.readPosition, unreadMarkedAt: null, privateStateVersion: 2 },
     }),
-    getMessages: async () => [message],
+    getMessages: async () => [message, own],
+    editMessage: vi.fn(async (messageId: string, input: EditMessageInput) => ({
+      ...own, id: messageId, text: input.text, updatedAt: new Date('2026-08-26T11:06:00Z'), revision: input.revision + 1,
+    })),
+    deleteMessage: vi.fn<(messageId: string) => Promise<void>>(async () => undefined),
     markConversationRead: vi.fn<(conversationId: string, options?: MarkConversationReadOptions) => Promise<void>>(async () => undefined),
     markConversationUnread: vi.fn(async (conversationId: string) => ({
       conversationId, unreadMarkedAt: new Date('2026-08-26T11:05:00Z'), privateStateVersion: 3,
@@ -86,7 +96,7 @@ describe('React live demo', () => {
       expect(fake.sdk.markConversationRead).toHaveBeenCalledWith('room-1', { throughMessageId: 'message-1', privateStateVersion: 2 }),
     )
     expect(screen.queryByRole('img', { name: 'Unread' })).toBeNull()
-    expect(screen.getByText('UI SDK 0.7.0')).toBeInTheDocument()
+    expect(screen.getByText('UI SDK 0.8.0')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Mark unread' }))
     // The action goes through the SDK's /unread route; the package patches the row and renders the
@@ -98,5 +108,46 @@ describe('React live demo', () => {
     expect(screen.queryByRole('img', { name: '0 unread' })).toBeNull()
     expect(screen.getByRole('heading', { name: 'A good conversation starts here' })).toBeInTheDocument()
     expect(screen.getByText('Marked unread · room-1')).toBeInTheDocument()
+  })
+  it('edits and deletes the own message through the package defaults and the SDK author calls', async () => {
+    localStorage.setItem(sessionKey, JSON.stringify({ userId: 'convokit_open_maya', roomId: 'room-1' }))
+    render(<LiveExample />)
+    await screen.findByText('Morning Alex, launch is a go', { selector: '.ckui-message-text' })
+    const row = (id: string) => within(document.querySelector<HTMLElement>(`[data-message-id="${id}"]`)!)
+    // The demo passes nothing about editing: the bound `Conversation` wires the controller, so Maya's own
+    // confirmed row offers the package's actions and its `Edited` label (revision 1), Alex's row neither.
+    expect(row('message-0').getByRole('button', { name: 'Edit message' })).toBeInTheDocument()
+    expect(row('message-0').getByRole('button', { name: 'Delete message' })).toBeInTheDocument()
+    expect(row('message-0').getByLabelText('Edited')).toHaveClass('ckui-message-edited')
+    expect(row('message-1').queryByRole('button', { name: 'Edit message' })).toBeNull()
+    expect(row('message-1').queryByLabelText('Edited')).toBeNull()
+
+    fireEvent.click(row('message-0').getByRole('button', { name: 'Edit message' }))
+    // Edit mode is store-owned: the composer shows the banner, is prefilled with the snapshot text and saves
+    // through the SDK's `/own` route with the SNAPSHOT's revision, never the live row's.
+    expect(screen.getByRole('status')).toHaveTextContent('Editing message')
+    const field = screen.getByRole('textbox', { name: 'Message' })
+    expect(field).toHaveValue('Morning Alex, launch is a go')
+    fireEvent.change(field, { target: { value: 'Morning Alex, launch is a go at 10:00' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save message' }))
+    await waitFor(() =>
+      expect(fake.sdk.editMessage).toHaveBeenCalledWith('message-0', { text: 'Morning Alex, launch is a go at 10:00', revision: 1 }),
+    )
+    await screen.findByText('Morning Alex, launch is a go at 10:00', { selector: '.ckui-message-text' })
+    expect(screen.queryByText('Editing message')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeInTheDocument()
+    expect(row('message-0').getByLabelText('Edited')).toBeInTheDocument()
+
+    // Delete is never optimistic: the inline confirmation sends nothing until `Delete`, then the row goes
+    // once the SDK's DELETE resolves.
+    fireEvent.click(row('message-0').getByRole('button', { name: 'Delete message' }))
+    expect(row('message-0').getByRole('group', { name: 'Delete this message?' })).toBeInTheDocument()
+    fireEvent.click(row('message-0').getByRole('button', { name: 'Cancel delete' }))
+    expect(fake.sdk.deleteMessage).not.toHaveBeenCalled()
+    fireEvent.click(row('message-0').getByRole('button', { name: 'Delete message' }))
+    fireEvent.click(row('message-0').getByRole('button', { name: 'Confirm delete' }))
+    await waitFor(() => expect(fake.sdk.deleteMessage).toHaveBeenCalledWith('message-0'))
+    await waitFor(() => expect(document.querySelector('[data-message-id="message-0"]')).toBeNull())
+    expect(screen.getByText('Hello Maya', { selector: '.ckui-message-text' })).toBeInTheDocument()
   })
 })

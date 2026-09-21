@@ -47,6 +47,11 @@ export const conversations: Conversation[] = [
   updatedAt: new Date(`2026-08-26T11:${27 - index}:00Z`),
 }))
 
+/**
+ * Every row carries the core 0.8 `revision`: 0 when sent, +1 per author or administrative edit. Alex edited
+ * the first message once, so its `revision` is 1 and the package labels it `Edited` from that alone (never
+ * from `updatedAt`); the others are unedited. Maya's own confirmed rows are the ones she may edit or delete.
+ */
 export const messages: Message[] = [
   {
     id: 'message-1',
@@ -55,7 +60,8 @@ export const messages: Message[] = [
     text: 'The final launch checklist is ready for review.',
     media: [],
     createdAt: new Date('2026-08-26T11:14:00Z'),
-    updatedAt: null,
+    updatedAt: new Date('2026-08-26T11:15:00Z'),
+    revision: 1,
   },
   {
     id: 'message-2',
@@ -73,6 +79,7 @@ export const messages: Message[] = [
     ],
     createdAt: new Date('2026-08-26T11:19:00Z'),
     updatedAt: null,
+    revision: 0,
   },
   {
     id: 'message-3',
@@ -90,6 +97,7 @@ export const messages: Message[] = [
     ],
     createdAt: new Date('2026-08-26T11:23:00Z'),
     updatedAt: null,
+    revision: 0,
   },
   {
     id: 'message-4',
@@ -106,6 +114,7 @@ export const messages: Message[] = [
     ],
     createdAt: new Date('2026-08-26T11:27:00Z'),
     updatedAt: null,
+    revision: 0,
   },
 ]
 
@@ -145,6 +154,7 @@ export const summaries = new Map<string, InboxSummary>([
         media: [],
         createdAt: new Date('2026-08-26T11:26:00Z'),
         updatedAt: null,
+        revision: 0,
       },
       unreadCount: 2,
       unreadCountCapped: false,
@@ -167,6 +177,7 @@ export const summaries = new Map<string, InboxSummary>([
         media: [{ id: 'image-2', type: 'image', name: 'settings-panel.png', url: '/launch-board.svg', size: 90112 }],
         createdAt: new Date('2026-08-26T11:25:00Z'),
         updatedAt: null,
+        revision: 0,
       },
       unreadCount: 0,
       unreadCountCapped: false,
@@ -189,6 +200,7 @@ export const summaries = new Map<string, InboxSummary>([
         media: [{ id: 'file-2', type: 'file', name: 'postmortem-draft.pdf', url: 'https://example.com/postmortem-draft.pdf', size: 512000 }],
         createdAt: new Date('2026-08-26T11:24:00Z'),
         updatedAt: null,
+        revision: 0,
       },
       unreadCount: 104,
       unreadCountCapped: false,
