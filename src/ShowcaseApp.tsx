@@ -154,13 +154,19 @@ function ConversationPanel({ variant, chat = false }: { variant: Variant; chat?:
 /**
  * Unread badge from a real `InboxSummary`; null when nothing is unread. Mirrors the package's default badge:
  * the visible label overflows to 99+, while the accessible name keeps the exact count unless the server capped it.
+ * A room the viewer marked unread with nothing actually unread (`isUnread` with a count of 0, not capped)
+ * gets a numberless dot named `Unread`, never `0 unread` or an invented count.
  */
 function unreadBadge(summary: ConversationItemRenderProps['summary']) {
-  if (!summary || (summary.unreadCount <= 0 && !summary.unreadCountCapped)) return null
+  if (!summary) return null
+  if (summary.unreadCount <= 0 && !summary.unreadCountCapped) {
+    return summary.isUnread ? { label: '', name: 'Unread', dot: true } : null
+  }
   const overflow = summary.unreadCount > 99 || summary.unreadCountCapped
   return {
     label: overflow ? '99+' : String(summary.unreadCount),
     name: summary.unreadCountCapped ? '99+ unread' : `${summary.unreadCount} unread`,
+    dot: false,
   }
 }
 
@@ -170,7 +176,7 @@ function BrandedConversationRow({ conversation, selected, onSelect, summary, cur
     <button type="button" className="branded-row" data-selected={selected || undefined} onClick={onSelect}>
       <span className="branded-row__avatar">{conversation.displayTitle[0]}</span>
       <span><strong>{conversation.displayTitle}</strong><small>{(summary && inboxPreviewText(summary, conversation, currentUserId)) || conversation.description}</small></span>
-      {unread ? <b aria-label={unread.name}>{unread.label}</b> : null}
+      {unread?.dot ? <i className="branded-row__dot" role="img" aria-label={unread.name} /> : unread ? <b aria-label={unread.name}>{unread.label}</b> : null}
     </button>
   )
 }

@@ -14,6 +14,7 @@ import {
   Check,
   Copy,
   LogOut,
+  Mail,
   MessageCircle,
   Plus,
   RefreshCw,
@@ -57,6 +58,20 @@ export function LiveExample() {
       setCopied(true)
     } catch {
       model.report(new Error('Could not copy. Select the room ID below and copy it manually.'))
+    }
+  }
+  // The published list controller sets the viewer's private marker and patches the row's summary
+  // (a numberless dot when nothing is unread). The room then closes so the dot is visible on every
+  // layout; reopening the room acknowledges it with the version captured at that open and clears it.
+  const markUnread = async () => {
+    const roomId = state.roomId
+    if (!roomId || !list.current) return
+    try {
+      await list.current.markUnread(roomId)
+      model.log('Marked unread · ' + roomId.slice(0, 8))
+      if (model.getSnapshot().roomId === roomId) model.selectRoom('')
+    } catch (cause) {
+      model.report(cause)
     }
   }
 
@@ -244,7 +259,7 @@ export function LiveExample() {
                 <div className="demo-sidebar-footer">
                   <span className="status-dot" />
                   {state.status}
-                  <span>UI SDK 0.6.0</span>
+                  <span>UI SDK 0.7.0</span>
                 </div>
               </aside>
               <section className="demo-chat-panel" aria-label="Chat workspace">
@@ -267,6 +282,15 @@ export function LiveExample() {
                         onClick={() => void copyRoom()}
                       >
                         {copied ? <Check size={16} /> : <Copy size={16} />}
+                      </button>
+                      <button
+                        className="icon-button"
+                        type="button"
+                        title="Mark unread"
+                        aria-label="Mark unread"
+                        onClick={() => void markUnread()}
+                      >
+                        <Mail size={16} />
                       </button>
                     </div>
                     <LiveConversation

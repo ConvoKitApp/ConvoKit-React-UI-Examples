@@ -114,7 +114,11 @@ export const readAtByUserId = new Map([
   ['jordan', new Date('2026-08-26T11:28:00Z')],
 ])
 
-/** What `listInbox` would return for Maya: the newest message, her unread count and activity time per room. */
+/**
+ * What `listInbox` would return for Maya: the newest message, her unread count, activity time and private
+ * unread marker per room. Design review has nothing unread but she marked it to come back to, so
+ * `isUnread` is true with a count of 0 and the package renders a numberless dot instead of a number.
+ */
 export const summaries = new Map<string, InboxSummary>([
   [
     'product-launch',
@@ -124,6 +128,9 @@ export const summaries = new Map<string, InboxSummary>([
       unreadCountCapped: false,
       readPosition: { messageId: 'message-3', createdAt: new Date('2026-08-26T11:23:00Z') },
       lastReadAt: new Date('2026-08-26T11:30:00Z'),
+      isUnread: false,
+      unreadMarkedAt: null,
+      privateStateVersion: 0,
       activityAt: new Date('2026-08-26T11:27:00Z'),
     },
   ],
@@ -143,6 +150,9 @@ export const summaries = new Map<string, InboxSummary>([
       unreadCountCapped: false,
       readPosition: null,
       lastReadAt: new Date('2026-08-26T10:58:00Z'),
+      isUnread: true,
+      unreadMarkedAt: null,
+      privateStateVersion: 0,
       activityAt: new Date('2026-08-26T11:26:00Z'),
     },
   ],
@@ -162,6 +172,9 @@ export const summaries = new Map<string, InboxSummary>([
       unreadCountCapped: false,
       readPosition: { messageId: 'message-6', createdAt: new Date('2026-08-26T11:25:00Z') },
       lastReadAt: new Date('2026-08-26T11:25:30Z'),
+      isUnread: true,
+      unreadMarkedAt: new Date('2026-08-26T11:29:00Z'),
+      privateStateVersion: 1,
       activityAt: new Date('2026-08-26T11:25:00Z'),
     },
   ],
@@ -181,6 +194,9 @@ export const summaries = new Map<string, InboxSummary>([
       unreadCountCapped: false,
       readPosition: null,
       lastReadAt: null,
+      isUnread: true,
+      unreadMarkedAt: null,
+      privateStateVersion: 0,
       activityAt: new Date('2026-08-26T11:24:00Z'),
     },
   ],

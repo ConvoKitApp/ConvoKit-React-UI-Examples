@@ -9,12 +9,18 @@ React UI package and the core [`@convokitapp/sdk`](https://www.npmjs.com/package
 
 ## Live open-chatroom demo
 
-This example consumes the published 0.6.0 core and UI packages. The SDK-backed
+This example consumes the published 0.7.0 core and UI packages. The SDK-backed
 conversation list pages the activity-ordered inbox, shows each room's latest-message
 preview, activity time and unread badge, and refreshes on room/membership/activity
 signals; pending messages are replaced when their matching live/history confirmation
-arrives. No demo-side polling, preview/unread bookkeeping, text matching or
-duplicate-bubble workaround is required.
+arrives. The room bar's **Mark unread** action calls the list controller's
+`markUnread(conversationId)` (obtained through `onControllerChange`): the package
+sets the viewer's private marker, patches that row's summary and renders a numberless
+dot when nothing is actually unread, and the demo returns to the inbox. Reopening the
+room acknowledges it with the private state version captured at that open, which
+clears the marker; other members never see it, and a second device picks it up
+through the inbox activity signal. No demo-side polling, preview/unread bookkeeping,
+text matching or duplicate-bubble workaround is required.
 
 [Open the React demo](https://convokit-react-demo.vercel.app). It uses the same backend, demo personas and
 room IDs as the [Flutter demo](https://convokit-open-chatroom.vercel.app).
@@ -25,6 +31,8 @@ required to try the shared demo.
 - Create a conversation and copy its room ID, or join an existing room by ID.
 - Open another framework/device with a different persona to test messages,
   typing, read receipts, images and files. Attachments are limited to 20 MB.
+- Open a room and choose **Mark unread** to flag it for later; the same persona on
+  another device sees the dot without opening the room, and opening it clears it.
 - Reload restores the user and selected room. Switch user ends that SDK session.
 - The inbox and chat are the published UI package's components/controllers.
   App code only supplies branding, the demo identity/room flow and upload/download hooks.
@@ -51,16 +59,17 @@ Use the selector to compare configurations, or open `?variant=standard`,
 ![Standard ConvoKit React conversation list and chat components](doc/screenshots/standard-components.png)
 
 Web-native, shadcn-inspired package defaults plus inbox previews and unread badges
-from `summaries`/`currentUserId`, refresh, attachment, read-position, image/file
-rendering, and bottom-anchored messages.
+from `summaries`/`currentUserId` (a numberless dot for a room marked unread with a
+count of 0), refresh, attachment, read-position, image/file rendering, and
+bottom-anchored messages.
 
 ### Branded customer support
 
 ![Branded ConvoKit React customer support interface](doc/screenshots/branded-support.png)
 
 A restrained product-branded support workspace built with `renderConversationItem` (reading the
-row's `summary` and `currentUserId`), `renderHeader`, `renderMedia`, `renderReadReceipt`, and
-`renderComposer`.
+row's `summary` and `currentUserId`, including the `isUnread` dot rule), `renderHeader`,
+`renderMedia`, `renderReadReceipt`, and `renderComposer`.
 
 ### Compact operations
 

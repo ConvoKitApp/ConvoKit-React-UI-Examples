@@ -48,6 +48,7 @@ button { color: inherit; }
 .branded-row strong { font-size: 13px; font-weight: 600; }
 .branded-row small { color: #787181; font-size: 11px; }
 .branded-row b { display: grid; min-width: 20px; height: 20px; padding-inline: 5px; place-items: center; border-radius: 6px; background: #6d45a8; color: #fff; font-size: 10px; }
+.branded-row__dot { display: block; width: 8px; height: 8px; border-radius: 50%; background: #6d45a8; }
 
 .branded-header { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: center; gap: 10px; min-height: 60px; padding: 8px 12px; border-bottom: 1px solid #e5dff0; background: #fff; color: #241c2e; }
 .branded-header > span { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #ddd4eb; border-radius: 8px; background: #f1ecf8; color: #6d45a8; }
