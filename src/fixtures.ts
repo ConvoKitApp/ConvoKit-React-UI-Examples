@@ -48,9 +48,91 @@ export const conversations: Conversation[] = [
 }))
 
 /**
- * Every row carries the core 0.8 `revision`: 0 when sent, +1 per author or administrative edit. Alex edited
- * the first message once, so its `revision` is 1 and the package labels it `Edited` from that alone (never
- * from `updatedAt`); the others are unedited. Maya's own confirmed rows are the ones she may edit or delete.
+ * The id of a message that was sent, quoted and then deleted. It is deliberately absent from both arrays
+ * below: the reply that points at it keeps its reference, and the package renders
+ * `Original message unavailable` instead of dropping the quote (core 0.9).
+ */
+export const removedMessageId = 'message-removed'
+
+/**
+ * The room's older history, the rows a newest-first page never reaches. They exist so the showcase can jump
+ * to a quoted message that is outside the loaded window: the host answers with a bounded window around it,
+ * exactly as `getMessageContext(conversationId, { messageId })` would, and that window REPLACES the loaded
+ * one until the viewer comes back to the latest.
+ */
+export const olderMessages: Message[] = [
+  {
+    id: 'history-1',
+    conversationId: 'product-launch',
+    senderId: 'alex',
+    text: 'Kicking off the launch thread — plan, owners and dates below.',
+    media: [],
+    createdAt: new Date('2026-08-26T10:38:00Z'),
+    updatedAt: null,
+    revision: 0,
+  },
+  {
+    id: 'history-2',
+    conversationId: 'product-launch',
+    senderId: 'jordan',
+    text: 'Here is the rollout plan we agreed in the architecture review.',
+    media: [],
+    createdAt: new Date('2026-08-26T10:42:00Z'),
+    updatedAt: null,
+    revision: 0,
+  },
+  {
+    id: 'history-3',
+    conversationId: 'product-launch',
+    senderId: 'maya',
+    text: 'Thanks Jordan. I will fold the copy review into that plan.',
+    media: [],
+    createdAt: new Date('2026-08-26T10:47:00Z'),
+    updatedAt: null,
+    revision: 0,
+  },
+  {
+    id: 'history-4',
+    conversationId: 'product-launch',
+    senderId: 'alex',
+    text: 'Staging sign-off is done, so only the checklist is left.',
+    media: [],
+    createdAt: new Date('2026-08-26T10:53:00Z'),
+    updatedAt: null,
+    revision: 0,
+  },
+  {
+    id: 'history-5',
+    conversationId: 'product-launch',
+    senderId: 'jordan',
+    text: 'Support already has the escalation path for launch week.',
+    media: [],
+    createdAt: new Date('2026-08-26T11:01:00Z'),
+    updatedAt: null,
+    revision: 0,
+  },
+  {
+    id: 'history-6',
+    conversationId: 'product-launch',
+    senderId: 'maya',
+    text: 'Noted. I will link the support case here once it is open.',
+    media: [],
+    createdAt: new Date('2026-08-26T11:06:00Z'),
+    updatedAt: null,
+    revision: 0,
+  },
+]
+
+/**
+ * The loaded window: what a newest-first page would hold. Every row carries the core 0.8 `revision` (0 when
+ * sent, +1 per author or administrative edit), so Alex's edited first message has `revision: 1` and the
+ * package labels it `Edited` from that alone, never from `updatedAt`. Maya's own confirmed rows are the ones
+ * she may edit or delete; any of them may be quoted.
+ *
+ * Three rows carry the core 0.9 `replyToMessageId`, one per render branch of the quoted block: a parent
+ * inside this window (resolved from the window itself, no request), a parent in `olderMessages` (resolved by
+ * the batched preview call, and a jump loads it), and a parent that was deleted (`removedMessageId`, which
+ * keeps the reference and renders `Original message unavailable`).
  */
 export const messages: Message[] = [
   {
@@ -80,6 +162,7 @@ export const messages: Message[] = [
     createdAt: new Date('2026-08-26T11:19:00Z'),
     updatedAt: null,
     revision: 0,
+    replyToMessageId: 'message-1',
   },
   {
     id: 'message-3',
@@ -98,6 +181,7 @@ export const messages: Message[] = [
     createdAt: new Date('2026-08-26T11:23:00Z'),
     updatedAt: null,
     revision: 0,
+    replyToMessageId: 'history-2',
   },
   {
     id: 'message-4',
@@ -115,6 +199,7 @@ export const messages: Message[] = [
     createdAt: new Date('2026-08-26T11:27:00Z'),
     updatedAt: null,
     revision: 0,
+    replyToMessageId: removedMessageId,
   },
 ]
 

@@ -9,7 +9,7 @@ React UI package and the core [`@convokitapp/sdk`](https://www.npmjs.com/package
 
 ## Live open-chatroom demo
 
-This example consumes the published 0.8.0 core and UI packages. The SDK-backed
+This example consumes the published 0.9.0 core and UI packages. The SDK-backed
 conversation list pages the activity-ordered inbox, shows each room's latest-message
 preview, activity time and unread badge, and refreshes on room/membership/activity
 signals; pending messages are replaced when their matching live/history confirmation
@@ -28,9 +28,17 @@ the inline `Delete this message?` confirmation and removes the row for every mem
 once the server confirms. Rows whose content changed carry an `Edited` label derived
 from the message's `revision`. The demo passes nothing about editing: the bound
 `Conversation` wires its controller (`editingMessage`, `startEditing`, `saveEdit`,
-`cancelEditing`, `deleteMessage`) itself. No demo-side polling, preview/unread
-bookkeeping, text matching, revision bookkeeping or duplicate-bubble workaround is
-required.
+`cancelEditing`, `deleteMessage`) itself. Any confirmed message offers **Reply**,
+which opens a cancellable `Replying to …` strip above the composer and sends the
+next message quoting that one; the quoted block above a reply shows the original's
+author and text, and activating it (`Go to quoted message`) centres, focuses and
+briefly highlights the original. A quote is always re-read and never copied, so
+editing the original updates every reply that points at it and deleting it leaves
+the reference in place as `Original message unavailable`. When the original sits
+outside the loaded history the package loads a bounded window around it, keeps
+`Jump to latest` on screen until you come back, and holds arriving messages until
+then. No demo-side polling, preview/unread bookkeeping, text matching, revision
+bookkeeping, history windowing or duplicate-bubble workaround is required.
 
 [Open the React demo](https://convokit-react-demo.vercel.app). It uses the same backend, demo personas and
 room IDs as the [Flutter demo](https://convokit-open-chatroom.vercel.app).
@@ -48,6 +56,11 @@ required to try the shared demo.
   reload. Edit the same message from both devices to see the conflict handling: the
   second save reloads the row, keeps your draft, and saves on the next attempt.
   Deleting cannot be undone, and files already received or downloaded cannot be retracted.
+- Hover or focus any message to **Reply** to it, then send: the other device sees the
+  quoted original above your text. Edit the original to watch the quote follow it, or
+  delete it to see the reply keep its reference as `Original message unavailable`.
+  Scroll far back on one device and open a quote whose original is no longer loaded:
+  the package fetches a window around it, highlights it, and offers `Jump to latest`.
 - Reload restores the user and selected room. Switch user ends that SDK session.
 - The inbox and chat are the published UI package's components/controllers.
   App code only supplies branding, the demo identity/room flow and upload/download hooks.
@@ -77,11 +90,24 @@ Web-native, shadcn-inspired package defaults plus inbox previews and unread badg
 from `summaries`/`currentUserId` (a numberless dot for a room marked unread with a
 count of 0), refresh, attachment, read-position, image/file rendering, own-message
 **Edit message** / **Delete message** actions with the inline delete confirmation, the
-composer's edit banner and the `Edited` label, and bottom-anchored messages. The
-controlled `ConversationView` gets `editingMessage`, `onEditMessage`, `onSaveEdit`,
-`onCancelEdit` and `onDeleteMessage` from a small fixture room (a save bumps the
-row's `revision`, a delete removes it and the inbox preview follows the newest
-surviving row); leave those props out and no action renders.
+composer's edit banner and the `Edited` label, the **Reply to message** action, quoted
+blocks and the composer's reply strip, and bottom-anchored messages. The controlled
+`ConversationView` gets `editingMessage`, `onEditMessage`, `onSaveEdit`, `onCancelEdit`
+and `onDeleteMessage` from a small fixture room (a save bumps the row's `revision`, a
+delete removes it and the inbox preview follows the newest surviving row); leave those
+props out and no action renders.
+
+The same fixture room owns the 0.9 reply and jump props: `replyTarget`,
+`onReplyToMessage`, `onCancelReply`, `replyPreviewByMessageId`, `onJumpToMessage`,
+`highlightedMessageId`, `jumpInFlight`, `onClearHighlight`, `hasNewerMessages`,
+`isLoadingNewer`, `onLoadNewer` and `onReturnToLatest`. Three fixture replies cover the
+cases a quoted block has to handle: an original inside the loaded window, one only in the
+room's older history, and one that was deleted (`Original message unavailable`, with the
+reference kept). Jumping to the first only scrolls and highlights; jumping to the second
+replaces the window with a bounded one around it and shows `Jump to latest`, exactly as
+`getMessageContext(conversationId, { messageId })` does against a real backend. Previews
+are resolved once per rendered page rather than once per row, and re-read rather than
+copied, so editing or deleting an original moves every quote that points at it.
 
 ### Branded customer support
 
@@ -90,8 +116,9 @@ surviving row); leave those props out and no action renders.
 A restrained product-branded support workspace built with `renderConversationItem` (reading the
 row's `summary` and `currentUserId`, including the `isUnread` dot rule), `renderHeader`,
 `renderMedia`, `renderReadReceipt`, and `renderComposer`. The custom composer renders its own
-banner from the `editing` render prop and calls the same `send` to save; the package's default
-rows keep their edit/delete actions.
+banner from the `editing` render prop and its own cancellable strip from `replying`, and calls
+the same `send` to save, reply or send; the package's default rows keep their edit/delete and
+reply actions and their quoted blocks.
 
 ### Compact operations
 
@@ -101,7 +128,10 @@ A dense dashboard built with `density="compact"`, custom rows, message lines,
 typing state, composer, and `stickToBottom={false}`. The custom message line renders the
 `isEdited` flag and the `edit` / `remove` actions it receives (present exactly when the
 viewer may act on that row); `remove` goes through the view's `confirmDelete`, so the
-host's own dialog replaces the inline confirmation.
+host's own dialog replaces the inline confirmation. It also draws its own quoted block from
+`replyPreview` (resolved, `'unavailable'`, or still unresolved and therefore blank) and its
+own **Reply** action from `reply`, which is offered on every confirmed row rather than only
+the viewer's own; `jumpToReplyTarget` makes the quote activatable.
 
 The complete configuration is in [`src/ShowcaseApp.tsx`](src/ShowcaseApp.tsx).
 
