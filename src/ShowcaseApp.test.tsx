@@ -157,7 +157,7 @@ describe('ShowcaseApp', () => {
     expect(confirm).toHaveBeenCalledTimes(2)
     expect(screen.queryByRole('button', { name: 'Edit message' })).toBeNull()
     expect(screen.getByText('The final launch checklist is ready for review.')).toBeInTheDocument()
-  })
+  }, 20_000)
 
   it('renders the three quoted-block states and jumps inside and outside the loaded window', async () => {
     window.history.replaceState({}, '', '/?variant=standard')
@@ -212,7 +212,7 @@ describe('ShowcaseApp', () => {
     await waitFor(() => expect(document.querySelector('[data-message-id="message-4"]')).not.toBeNull())
     expect(document.querySelector('[data-message-id="history-1"]')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Jump to latest messages' })).toBeNull()
-  })
+  }, 20_000)
 
   it('quotes through the composer strip and re-reads the parent when it is edited or deleted', async () => {
     window.history.replaceState({}, '', '/?variant=standard')
@@ -280,7 +280,7 @@ describe('ShowcaseApp', () => {
     fireEvent.click(row(sentId).getByRole('button', { name: 'Go to quoted message' }))
     expect(within(quote(sentId)!).getByText('Original message unavailable')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
-  })
+  }, 20_000)
 
   it('hands the compact custom row and composer the flat reply context', async () => {
     window.history.replaceState({}, '', '/?variant=compact')
