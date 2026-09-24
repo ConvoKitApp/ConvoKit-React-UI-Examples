@@ -72,6 +72,11 @@ const fake = vi.hoisted(() => {
       ...own, id: messageId, text: input.text, updatedAt: new Date('2026-08-26T11:06:00Z'), revision: input.revision + 1,
     })),
     deleteMessage: vi.fn<(messageId: string) => Promise<void>>(async () => undefined),
+    addReaction: vi.fn(async (messageId: string, emoji: string) => ({ messageId, emoji, changed: true })),
+    removeReaction: vi.fn(async (messageId: string, emoji: string) => ({ messageId, emoji, changed: true })),
+    getReactionSummaries: vi.fn(async (_conversationId: string, messageIds: string[]) =>
+      messageIds.map(messageId => ({ messageId, reactions: [], hasMore: false }))),
+    listReactionUsers: vi.fn(async () => ({ users: [], nextCursor: null })),
     markConversationRead: vi.fn<(conversationId: string, options?: MarkConversationReadOptions) => Promise<void>>(async () => undefined),
     markConversationUnread: vi.fn(async (conversationId: string) => ({
       conversationId, unreadMarkedAt: new Date('2026-08-26T11:05:00Z'), privateStateVersion: 3,
@@ -79,7 +84,8 @@ const fake = vi.hoisted(() => {
     clearConversationUnread: vi.fn(),
     realtime: {
       onConnectionEvent: subscription, onPresence: subscription, onInboxChanged: subscription, onInboxActivity: subscription,
-      onMessage: subscription, onMessageDeleted: subscription, onReadReceipt: subscription, onTyping: subscription,
+      onMessage: subscription, onMessageDeleted: subscription, onReactionChanged: subscription,
+      onReadReceipt: subscription, onTyping: subscription,
     },
   }
   return { sdk }
