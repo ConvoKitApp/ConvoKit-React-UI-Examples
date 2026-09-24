@@ -1,7 +1,8 @@
-import type { Message, MessageMedia, ReplyPreview } from '@convokitapp/sdk'
+import type { Message, MessageMedia, MessageReactionSummary, ReactionUsersPage, ReplyPreview } from '@convokitapp/sdk'
 import {
   ConversationListView,
   ConversationView,
+  ReactionBar,
   ConvoKitThemeProvider,
   inboxPreviewText,
   isConvoKitPendingMessage,
@@ -118,6 +119,9 @@ function useDeferred() {
  */
 function useShowcaseRoom() {
   const [room, setRoom] = useState<Message[]>(() => [...olderMessages, ...messages])
+  const [reactionSummaries, setReactionSummaries] = useState<ReadonlyMap<string, MessageReactionSummary>>(() => new Map([
+    [messages.at(-1)!.id, { messageId: messages.at(-1)!.id, reactions: [{ emoji: '❤️', count: 2, reactedByMe: false }], hasMore: false }],
+  ]))
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [replyTarget, setReplyTarget] = useState<Message | null>(null)
   // A jumped window is held as its anchor plus its size, so an edit, a delete or a send cannot shift it.
@@ -188,6 +192,30 @@ function useShowcaseRoom() {
     editingMessage,
     replyTarget,
     replyPreviews,
+    reactionSummaries,
+    toggleReaction: async (message: Message, emoji: string): Promise<boolean> => {
+      setReactionSummaries((current) => {
+        const next = new Map(current)
+        const previous = next.get(message.id)?.reactions ?? []
+        const found = previous.find((reaction) => reaction.emoji === emoji)
+        const reactions = found
+          ? previous.map((reaction) => reaction.emoji === emoji
+            ? { ...reaction, count: reaction.count + (reaction.reactedByMe ? -1 : 1), reactedByMe: !reaction.reactedByMe }
+            : reaction).filter((reaction) => reaction.count > 0)
+          : [...previous, { emoji, count: 1, reactedByMe: true }]
+        next.set(message.id, { messageId: message.id, reactions, hasMore: false })
+        return next
+      })
+      return true
+    },
+    listReactionUsers: async (message: Message, emoji: string, cursor?: string): Promise<ReactionUsersPage> => ({
+      data: cursor ? [] : [
+        ...(reactionSummaries.get(message.id)?.reactions.find((reaction) => reaction.emoji === emoji)?.reactedByMe
+          ? [{ userId: 'maya', name: 'Maya Chen', imageUrl: null, reactedAt: new Date() }] : []),
+        { userId: 'alex', name: 'Alex Rivera', imageUrl: null, reactedAt: new Date() },
+      ],
+      nextCursor: null,
+    }),
     highlightedMessageId,
     jumpInFlight,
     isLoadingNewer,
@@ -368,6 +396,9 @@ function ConversationPanel({ variant, room, chat = false }: { variant: Variant; 
       onReplyToMessage={room.reply}
       onCancelReply={room.cancelReply}
       replyPreviewByMessageId={room.replyPreviews}
+      reactionSummaries={room.reactionSummaries}
+      onToggleReaction={room.toggleReaction}
+      onListReactionUsers={room.listReactionUsers}
       onJumpToMessage={room.jump}
       highlightedMessageId={room.highlightedMessageId}
       jumpInFlight={room.jumpInFlight}
@@ -500,7 +531,7 @@ function CompactQuote({ preview, jumpToReplyTarget }: { preview?: ReplyPreviewSt
  * `reply` on every confirmed row a writer may quote (any member may quote any row, so unlike `canEdit` it is
  * not limited to the viewer's own), plus `replyPreview` and `jumpToReplyTarget` on rows that quote something.
  */
-function CompactMessage({ message, sender, isCurrentUser, isEdited, edit, remove, canReply, reply, replyPreview, jumpToReplyTarget }: MessageRenderProps) {
+function CompactMessage({ message, sender, isCurrentUser, isEdited, edit, remove, canReply, reply, replyPreview, jumpToReplyTarget, reaction }: MessageRenderProps) {
   const status = isConvoKitPendingMessage(message)
     ? 'Sending…'
     : message.createdAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
@@ -515,6 +546,7 @@ function CompactMessage({ message, sender, isCurrentUser, isEdited, edit, remove
           />
         ) : null}
         <span>{message.text}</span>
+        {reaction ? <ReactionBar reaction={reaction} /> : null}
       </span>
       <span className="compact-message__meta"><time>{status}</time>{isEdited ? <em aria-label="Edited">Edited</em> : null}</span>
       {canReply || edit || remove ? (
