@@ -127,7 +127,7 @@ describe('React live demo', () => {
       expect(fake.sdk.markConversationRead).toHaveBeenCalledWith('room-1', { throughMessageId: 'message-1', privateStateVersion: 2 }),
     )
     expect(screen.queryByRole('img', { name: 'Unread' })).toBeNull()
-    expect(screen.getByText('UI SDK 0.9.0')).toBeInTheDocument()
+    expect(screen.getByText('UI SDK 0.10.0')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Mark unread' }))
     // The action goes through the SDK's /unread route; the package patches the row and renders the
