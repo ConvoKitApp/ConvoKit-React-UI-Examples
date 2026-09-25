@@ -452,6 +452,35 @@
 .demo-conversation .ckui-messages {
   background: #fcfdfb;
 }
+.demo-conversation .ckui-message-bubble { order: 0; }
+.demo-conversation .demo-read-receipt { order: 1; }
+.demo-conversation .ckui-reactions { order: 2; }
+.demo-conversation .ckui-message-actions,
+.demo-conversation .ckui-message-confirm { order: 3; }
+.demo-read-receipt {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 18px;
+  padding-top: 2px;
+  padding-right: 2px;
+}
+.demo-read-receipt--empty { display: none; }
+.demo-read-receipt__avatar {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  margin-left: -5px;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1;
+}
+.demo-read-receipt__avatar:first-child { margin-left: 0; }
+.demo-read-receipt__more { padding-left: 4px; color: var(--demo-muted); font-size: 10px; }
 .demo-conversation .ckui-media-card--image img {
   max-height: 230px;
   object-fit: contain;

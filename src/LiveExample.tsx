@@ -32,6 +32,7 @@ import {
   personas,
   uploadAttachment,
 } from './demo'
+import { ReadReceiptAvatars } from './ReadReceiptAvatars'
 import './live.css'
 
 export function LiveExample() {
@@ -259,7 +260,7 @@ export function LiveExample() {
                 <div className="demo-sidebar-footer">
                   <span className="status-dot" />
                   {state.status}
-                  <span>UI SDK 0.9.0</span>
+                  <span>UI SDK 0.10.0</span>
                 </div>
               </aside>
               <section className="demo-chat-panel" aria-label="Chat workspace">
@@ -494,6 +495,7 @@ function LiveConversation({
           })
         }}
         composerPlaceholder="Message your team…"
+        renderReadReceipt={({ readerIds }) => <ReadReceiptAvatars readerIds={readerIds} />}
         formatTime={(date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       />
     </div>
